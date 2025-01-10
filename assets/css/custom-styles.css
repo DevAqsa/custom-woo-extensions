@@ -1,0 +1,63 @@
+
+.custom-product-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.custom-product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sale-badge {
+    background-color: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.subscription-details {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.subscription-period {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+/* Custom Cart Styles */
+.custom-cart-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.product-thumbnail {
+    flex: 0 0 100px;
+    margin-right: 20px;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.custom-cart-notice,
+.custom-product-notice {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
