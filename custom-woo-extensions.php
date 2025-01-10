@@ -3,7 +3,7 @@
  * Plugin Name: Custom WooCommerce Extensions
  * Description: Custom product types, hooks, and dynamic pricing
  * Version: 1.0
- * Author: Your Name
+ * Author: Aqsa Mumtaz
  * Text Domain: custom-woo-extensions
  */
 
@@ -86,7 +86,7 @@ function cwe_enqueue_assets() {
     );
 }
 
-// Activation hook
+
 register_activation_hook(__FILE__, 'cwe_check_woocommerce');
 
 // Initialize plugin after WooCommerce is loaded

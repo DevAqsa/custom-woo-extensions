@@ -1,6 +1,6 @@
 <?php
 /**
- * Menu System for Custom WooCommerce Extensions
+ * Menu System for Custom Woo Extensions
  */
 
 class CWE_Admin_Menu {
@@ -490,32 +490,96 @@ public function render_subscription_page() {
         <?php
     }
 
+
+
     /**
      * Render Reports Page
      */
     public function render_reports_page() {
+        // Handle date filter
+        $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : date('Y-m-d', strtotime('-30 days'));
+        $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : date('Y-m-d');
         ?>
         <div class="wrap">
             <h1><?php echo esc_html__('Reports & Analytics', 'custom-woo-extensions'); ?></h1>
             
+            <!-- Date Filter -->
+            <div class="cwe-filter-bar">
+                <form method="get" action="">
+                    <input type="hidden" name="page" value="cwe-reports">
+                    <div class="date-filters">
+                        <label>
+                            <?php esc_html_e('From:', 'custom-woo-extensions'); ?>
+                            <input type="date" name="start_date" value="<?php echo esc_attr($start_date); ?>">
+                        </label>
+                        <label>
+                            <?php esc_html_e('To:', 'custom-woo-extensions'); ?>
+                            <input type="date" name="end_date" value="<?php echo esc_attr($end_date); ?>">
+                        </label>
+                        <button type="submit" class="button button-primary">
+                            <?php esc_html_e('Apply Filter', 'custom-woo-extensions'); ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+    
+            <!-- Quick Summary -->
+            <div class="cwe-summary-bar">
+                <div class="summary-item">
+                    <span class="summary-label"><?php esc_html_e('Total Revenue', 'custom-woo-extensions'); ?></span>
+                    <span class="summary-value">$<?php echo esc_html($this->get_subscription_revenue()); ?></span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label"><?php esc_html_e('Active Subscriptions', 'custom-woo-extensions'); ?></span>
+                    <span class="summary-value"><?php echo esc_html($this->get_active_subscriptions_count()); ?></span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label"><?php esc_html_e('Dynamic Price Products', 'custom-woo-extensions'); ?></span>
+                    <span class="summary-value"><?php echo esc_html($this->get_dynamic_prices_count()); ?></span>
+                </div>
+            </div>
+    
             <div class="cwe-reports-wrapper">
                 <!-- Subscription Reports -->
                 <div class="cwe-widget">
-                    <h2><?php echo esc_html__('Subscription Overview', 'custom-woo-extensions'); ?></h2>
+                    <div class="widget-header">
+                        <h2><?php echo esc_html__('Subscription Overview', 'custom-woo-extensions'); ?></h2>
+                        <div class="widget-actions">
+                            <button class="button" onclick="window.print();">
+                                <?php esc_html_e('Print Report', 'custom-woo-extensions'); ?>
+                            </button>
+                        </div>
+                    </div>
                     <div class="cwe-report-content">
                         <?php $this->render_subscription_reports(); ?>
                     </div>
                 </div>
-
+    
                 <!-- Pricing Reports -->
                 <div class="cwe-widget">
-                    <h2><?php echo esc_html__('Dynamic Pricing Impact', 'custom-woo-extensions'); ?></h2>
+                    <div class="widget-header">
+                        <h2><?php echo esc_html__('Dynamic Pricing Impact', 'custom-woo-extensions'); ?></h2>
+                        <div class="widget-actions">
+                            <button class="button export-csv">
+                                <?php esc_html_e('Export CSV', 'custom-woo-extensions'); ?>
+                            </button>
+                        </div>
+                    </div>
                     <div class="cwe-report-content">
                         <?php $this->render_pricing_reports(); ?>
                     </div>
                 </div>
             </div>
         </div>
+    
+        <script>
+        jQuery(document).ready(function($) {
+            $('.export-csv').on('click', function() {
+                // Add export functionality if needed
+                alert('Export functionality will be implemented here');
+            });
+        });
+        </script>
         <?php
     }
 
@@ -569,12 +633,7 @@ public function render_subscription_page() {
         return $dynamic_prices->found_posts;
     }
 
-
-    
 }
-
-
-
 
 // Initialize the menu system
 new CWE_Admin_Menu();
