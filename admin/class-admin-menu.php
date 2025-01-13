@@ -3,6 +3,7 @@
  * Menu System for Custom Woo Extensions
  */
 
+
 class CWE_Admin_Menu {
     private $settings = array();
 
@@ -603,6 +604,36 @@ public function render_subscription_page() {
     /**
      * Helper methods for statistics
      */
+    private function get_subscription_revenue($start_date = '', $end_date = '') {
+        global $wpdb;
+        
+        // If no dates provided, get last 30 days
+        if (empty($start_date)) {
+            $start_date = date('Y-m-d', strtotime('-30 days'));
+        }
+        if (empty($end_date)) {
+            $end_date = date('Y-m-d');
+        }
+
+        // Get subscription orders
+        $query = $wpdb->prepare(
+            "SELECT SUM(meta_value) as revenue
+            FROM {$wpdb->posts} p
+            JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+            WHERE p.post_type = 'shop_subscription'
+            AND p.post_status IN ('wc-active', 'wc-completed')
+            AND pm.meta_key = '_order_total'
+            AND p.post_date >= %s
+            AND p.post_date <= %s",
+            $start_date,
+            $end_date
+        );
+
+        $result = $wpdb->get_var($query);
+        
+        return $result ? round($result, 2) : 0.00;
+    }
+
     private function get_active_subscriptions_count() {
         $args = array(
             'post_type' => 'product',
@@ -632,8 +663,9 @@ public function render_subscription_page() {
         $dynamic_prices = new WP_Query($args);
         return $dynamic_prices->found_posts;
     }
-
 }
+
+
 
 // Initialize the menu system
 new CWE_Admin_Menu();

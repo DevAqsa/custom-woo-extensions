@@ -16,10 +16,16 @@ define('CWE_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('CWE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('CWE_VERSION', '1.0.0');
 
+// Security nonce name
+define('CWE_NONCE_ACTION', 'custom_woo_extensions_nonce');
+
 require_once CWE_PLUGIN_PATH . 'admin/class-admin-menu.php';
 
 // Autoloader for classes
 spl_autoload_register(function ($class_name) {
+    // Sanitize class name to prevent directory traversal
+    $class_name = preg_replace('/[^a-zA-Z0-9_]/', '', $class_name);
+    
     $classes_dir = CWE_PLUGIN_PATH . 'includes/';
     $class_file = 'class-' . str_replace('_', '-', strtolower($class_name)) . '.php';
     $class_path = $classes_dir . $class_file;
@@ -29,12 +35,17 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-// Check WooCommerce dependency
+// Check WooCommerce dependency with nonce verification
 function cwe_check_woocommerce() {
-    if (!class_exists('WooCommerce')) {
-        add_action('admin_notices', 'cwe_woocommerce_missing_notice');
-        deactivate_plugins(plugin_basename(__FILE__));
-        if (isset($_GET['activate'])) {
+    if (isset($_GET['activate'])) {
+       
+        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'activate-plugin_' . plugin_basename(__FILE__))) {
+            wp_die('Security check failed');
+        }
+        
+        if (!class_exists('WooCommerce')) {
+            add_action('admin_notices', 'cwe_woocommerce_missing_notice');
+            deactivate_plugins(plugin_basename(__FILE__));
             unset($_GET['activate']);
         }
     }
@@ -45,10 +56,17 @@ function cwe_woocommerce_missing_notice() {
     ?>
     <div class="error">
         <p><?php 
-            echo sprintf(
-                'Custom Product Creator requires %sWooCommerce%s to be installed and activated.',
-                '<a href="' . esc_url(admin_url('plugin-install.php?s=woocommerce&tab=search&type=term')) . '">',
-                '</a>'
+            echo wp_kses(
+                sprintf(
+                    'Custom Product Creator requires %sWooCommerce%s to be installed and activated.',
+                    '<a href="' . esc_url(admin_url('plugin-install.php?s=woocommerce&tab=search&type=term')) . '">',
+                    '</a>'
+                ),
+                array(
+                    'a' => array(
+                        'href' => array()
+                    )
+                )
             );
         ?></p>
     </div>
@@ -68,26 +86,31 @@ function cwe_init() {
     }
 }
 
-// Enqueue CSS and JavaScript
+// Enqueue CSS and JavaScript with version control
 function cwe_enqueue_assets() {
+    $version = defined('WP_DEBUG') && WP_DEBUG ? time() : CWE_VERSION;
+    
     wp_enqueue_style(
         'custom-woo-styles',
-        CWE_PLUGIN_URL . 'assets/css/custom-styles.css',
+        esc_url(CWE_PLUGIN_URL . 'assets/css/custom-styles.css'),
         array(),
-        CWE_VERSION
+        $version
     );
 
     wp_enqueue_script(
         'custom-woo-scripts',
-        CWE_PLUGIN_URL . 'assets/js/custom-scripts.js',
+        esc_url(CWE_PLUGIN_URL . 'assets/js/custom-scripts.js'),
         array('jquery'),
-        CWE_VERSION,
+        $version,
         true
     );
+
+    // Add nonce to JavaScript
+    wp_localize_script('custom-woo-scripts', 'cweAjax', array(
+        'nonce' => wp_create_nonce(CWE_NONCE_ACTION),
+        'ajaxurl' => admin_url('admin-ajax.php')
+    ));
 }
 
-
 register_activation_hook(__FILE__, 'cwe_check_woocommerce');
-
-// Initialize plugin after WooCommerce is loaded
 add_action('plugins_loaded', 'cwe_init');
